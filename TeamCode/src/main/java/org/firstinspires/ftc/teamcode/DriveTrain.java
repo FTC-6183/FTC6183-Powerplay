@@ -20,9 +20,11 @@ public class DriveTrain extends LinearOpMode {
             double y = (Math.pow(-gamepad1.left_stick_y,2))*Math.signum(-gamepad1.left_stick_y); //y value is inverted
             double x = (Math.pow(gamepad1.left_stick_x,2))*Math.signum(gamepad1.left_stick_x);
             double rx = gamepad1.right_stick_x;
-            
+
             if (gamepad1.left_bumper){
                 speedDivide = 4;
+            } else {
+                speedDivide = 1;
             }
             double frontLeftSpd=(y+x+rx)/speedDivide; //y+x+rx
             double frontRightSpd=(y-x-rx)/speedDivide;
