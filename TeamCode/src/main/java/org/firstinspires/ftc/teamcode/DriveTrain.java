@@ -26,9 +26,9 @@ public class DriveTrain extends LinearOpMode {
             } else {
                 speedDivide = 1;
             }
-            double frontLeftSpd=(y+x+rx)/speedDivide; //y+x+rx
+            double frontLeftSpd=-(y+x+rx)/speedDivide; //y+x+rx
             double frontRightSpd=(y-x-rx)/speedDivide;
-            double backLeftSpd=(y-x+rx)/speedDivide; //y-x+rx
+            double backLeftSpd=-(y-x+rx)/speedDivide; //y-x+rx
             double backRightSpd=(y+x-rx)/speedDivide;
 
             double denominator = Math.max(Math.abs(y)+Math.abs(x)+Math.abs(rx),1);
