@@ -13,7 +13,7 @@ public class DriveTrain extends LinearOpMode {
         DcMotorEx backRight = hardwareMap.get(DcMotorEx.class, "BR");
         DcMotorEx frontLeft = hardwareMap.get(DcMotorEx.class, "FL");
         DcMotorEx frontRight = hardwareMap.get(DcMotorEx.class, "FR");
-        double speedDivide = 1;
+
         waitForStart(); //waits for start
 
         while (opModeIsActive()){
@@ -21,11 +21,7 @@ public class DriveTrain extends LinearOpMode {
             double x = (Math.pow(gamepad1.left_stick_x,2))*Math.signum(gamepad1.left_stick_x);
             double rx = gamepad1.right_stick_x;
 
-            if (gamepad1.left_bumper){
-                speedDivide = 4;
-            } else {
-                speedDivide = 1;
-            }
+            double speedDivide = gamepad1.right_trigger*3+1;
             double frontLeftSpd=-(y+x+rx)/speedDivide; //y+x+rx
             double frontRightSpd=(y-x-rx)/speedDivide;
             double backLeftSpd=-(y-x+rx)/speedDivide; //y-x+rx
