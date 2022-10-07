@@ -13,15 +13,30 @@ public class DriveTrain extends LinearOpMode {
         DcMotorEx backRight = hardwareMap.get(DcMotorEx.class, "BR");
         DcMotorEx frontLeft = hardwareMap.get(DcMotorEx.class, "FL");
         DcMotorEx frontRight = hardwareMap.get(DcMotorEx.class, "FR");
-
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         waitForStart(); //waits for start
-
+        //double yOld = 0;
+        //double xOld = 0;
         while (opModeIsActive()){
-            double y = (Math.pow(-gamepad1.left_stick_y,2))*Math.signum(-gamepad1.left_stick_y); //y value is inverted
-            double x = (Math.pow(gamepad1.left_stick_x,2))*Math.signum(gamepad1.left_stick_x);
-            double rx = gamepad1.right_stick_x;
+            double y = 0.8*(Math.pow(-gamepad1.left_stick_y,2))*Math.signum(-gamepad1.left_stick_y); //y value is inverted
+            double x = 0.8*(Math.pow(gamepad1.left_stick_x,2))*Math.signum(gamepad1.left_stick_x);
+            //double yNew = Math.min(yOld,y);
+            //double xNew = Math.min(xOld,x);
+            //yOld += 0.1*Math.signum(-gamepad1.left_stick_y)/50;
+            //xOld += 0.1*Math.signum(gamepad1.right_stick_x)/50;
 
+            double rx = gamepad1.right_stick_x;
             double speedDivide = gamepad1.right_trigger*3+1;
+
+            /*
+            if (Math.abs(x)<0.15){
+                x=0;
+            }
+            */
+
             double frontLeftSpd=-(y+x+rx)/speedDivide; //y+x+rx
             double frontRightSpd=(y-x-rx)/speedDivide;
             double backLeftSpd=-(y-x+rx)/speedDivide; //y-x+rx
@@ -37,10 +52,15 @@ public class DriveTrain extends LinearOpMode {
             frontRight.setPower(frontRightSpd);
             backLeft.setPower(backLeftSpd);
             backRight.setPower(backRightSpd);
-            backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+/*
+            telemetry.addData("leftStickY", y);
+            telemetry.addData("leftStickX",x);
+            telemetry.addData("yOld", yOld);
+            telemetry.addData("xOld",xOld);
+            telemetry.addData("yNew", yNew);
+            telemetry.addData("xNew",xNew);
+            telemetry.update();
+            */
 
         }
     }
