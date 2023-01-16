@@ -29,7 +29,7 @@ public class DriveTrain extends LinearOpMode {
             //xOld += 0.1*Math.signum(gamepad1.right_stick_x)/50;
 
             double rx = gamepad1.right_stick_x;
-            double speedDivide = gamepad1.right_trigger*3+1;
+            double speedDivide = gamepad1.right_trigger*2+1;
 
             /*
             if (Math.abs(x)<0.15){
@@ -52,15 +52,12 @@ public class DriveTrain extends LinearOpMode {
             frontRight.setPower(frontRightSpd);
             backLeft.setPower(backLeftSpd);
             backRight.setPower(backRightSpd);
-/*
+
             telemetry.addData("leftStickY", y);
             telemetry.addData("leftStickX",x);
-            telemetry.addData("yOld", yOld);
-            telemetry.addData("xOld",xOld);
-            telemetry.addData("yNew", yNew);
-            telemetry.addData("xNew",xNew);
             telemetry.update();
-            */
+
+
 
         }
     }
