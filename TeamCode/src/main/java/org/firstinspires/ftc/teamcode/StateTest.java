@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp
@@ -36,12 +37,14 @@ public class StateTest extends LinearOpMode {
         int targetPos = 0;
         int armTarget = 0;
         boolean back = false;
+        boolean adjusted = false;
         ElapsedTime eTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         State liftState = State.START;
         waitForStart();
         while (opModeIsActive()){
             switch(liftState) {
                 case START:
+                    adjusted = false;
                     Intake.setPower(0);
                     VBMotor.setTargetPosition(0);
                     LSlides.setTargetPosition(0);
@@ -79,19 +82,54 @@ public class StateTest extends LinearOpMode {
                         } else {
                             armTarget = 786;
                         }
+                        VBMotor.setPower(0.2);
                         VBMotor.setTargetPosition(armTarget);
-                        liftState = State.DEPOSIT;
-                        eTime.reset();
+                        if (VBMotor.getCurrentPosition()==VBMotor.getTargetPosition()) {
+                            VBMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                            LSlides.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                            RSlides.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                            eTime.reset();
+                            liftState = State.DEPOSIT;
+                        }
                     }
                     break;
                 case DEPOSIT:
-                    if (eTime.time()>1500){
+                    if (gamepad1.dpad_down){
+                        LSlides.setPower(-0.07);
+                        RSlides.setPower(0.07);
+                        eTime.reset();
+                        adjusted = true;
+                    } else if (gamepad1.dpad_up){
+                        LSlides.setPower(0.07);
+                        RSlides.setPower(-0.07);
+                        eTime.reset();
+                        adjusted = true;
+                    } else {
+                        LSlides.setPower(0);
+                        RSlides.setPower(0);
+                    }
+                    if (gamepad1.dpad_left){
+                        VBMotor.setPower(-0.08);
+                        eTime.reset();
+                        adjusted = true;
+                    } else if (gamepad1.dpad_right) {
+                        VBMotor.setPower(0.08);
+                        eTime.reset();
+                        adjusted = true;
+                    } else {
+                        VBMotor.setPower(0);
+                    }
+                    if ((eTime.time()>1200)||(eTime.time()>250&&adjusted)){
                         Intake.setPower(-0.8);
-                    } else if (eTime.time()>3-00){
-                        LSlides.setPower(-0.25);
-                        RSlides.setPower(0.25);
-                        VBMotor.setPower(-0.2);
-                        liftState = State.START;
+                        if (eTime.time()>2500) {
+                            VBMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                            LSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                            RSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                            LSlides.setPower(-0.2);
+                            RSlides.setPower(0.2);
+                            VBMotor.setPower(-0.15);
+                            liftState = State.START;
+                        }
                     }
                     break;
             }
