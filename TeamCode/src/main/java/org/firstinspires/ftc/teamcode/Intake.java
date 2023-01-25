@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.ServoImpl;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 @TeleOp
-public class ServoTest extends LinearOpMode {
+public class Intake extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         CRServo Intake = hardwareMap.get(CRServo.class, "Intake");

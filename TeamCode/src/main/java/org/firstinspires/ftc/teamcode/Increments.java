@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import java.util.concurrent.TimeUnit;
+
 @TeleOp
 public class Increments extends LinearOpMode {
     @Override
@@ -20,18 +22,55 @@ public class Increments extends LinearOpMode {
         VBMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         VBMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); //set current pos to 0
         VBMotor.setTargetPosition(0);
-        double P = 0.25;
-        double NP = -0.2;
+        RSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        RSlides.setTargetPosition(0);
+        LSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        LSlides.setTargetPosition(0);
+        //525 for the top for VMotor intermediate
+        //3050 LSlides RSLides for level 3, 786 for VMotor
+        double x = 0;
+        double P = 0.33;
+        double PS = 0.5;
+        double NP = -0.11;
+        int backPos = 800;
         ElapsedTime eTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+        //ElapsedTime jTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         waitForStart();
 
         while (opModeIsActive()){
-            if (eTime.time()<5000){ //suck up the cone
-                Intake.setPower(0.2);
-            } else if (eTime.time()>10000){
+            if (eTime.time()<3000){ //suck up the cone
+                Intake.setPower(0.3);
+            } else if (eTime.time()>7000){
                 eTime.reset();
             } else {
                 Intake.setPower(0);
+            }
+            if (gamepad1.y) {
+                //x = jTime.now(TimeUnit.MILLISECONDS);
+                LSlides.setTargetPosition(1550);
+                RSlides.setTargetPosition(-1550);
+                LSlides.setPower(PS);
+                RSlides.setPower(-PS);
+                LSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION); //go back to position 0
+                RSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            } else if (gamepad1.a){
+                LSlides.setTargetPosition(0);
+                RSlides.setTargetPosition(0);
+                LSlides.setPower(-PS);
+                RSlides.setPower(PS);
+                LSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION); //go to pos
+                RSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            } else {
+                if (LSlides.getCurrentPosition()!=LSlides.getTargetPosition()&&LSlides.getTargetPosition()>LSlides.getCurrentPosition()){
+                    LSlides.setPower(PS); //continue going forward to target pos
+                    RSlides.setPower(-PS);
+                } else if (LSlides.getCurrentPosition()!=LSlides.getTargetPosition()&&LSlides.getTargetPosition()<LSlides.getCurrentPosition()){
+                    LSlides.setPower(-PS); //continue going backwards to target pos
+                    RSlides.setPower(PS);
+                } else if (LSlides.getCurrentPosition()==LSlides.getTargetPosition()){
+                    LSlides.setPower(0); // stop going after reaching target pos
+                    RSlides.setPower(0);
+                }
             }
             /*if (gamepad1.a){
                 LSlides.setPower(0.3);
@@ -46,15 +85,25 @@ public class Increments extends LinearOpMode {
                 VBMotor.setPower(NP);
                 VBMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION); //go back to position 0
             } else if (gamepad1.x){
-                VBMotor.setTargetPosition(670);
+                //jTime.reset();
+                VBMotor.setTargetPosition(backPos);
                 VBMotor.setPower(P);
                 VBMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION); // go to target pos
             } else {
                 if (VBMotor.getCurrentPosition()!=VBMotor.getTargetPosition()&&VBMotor.getTargetPosition()>VBMotor.getCurrentPosition()){
-                    VBMotor.setPower(P); //continue going forward to target pos
+                    if(VBMotor.getCurrentPosition()<600){
+                        VBMotor.setPower(P); //continue going forward to target pos
+                    } else {
+                        if(LSlides.getCurrentPosition()!=LSlides.getTargetPosition()){
+                            VBMotor.setPower(0);
+                        } else {
+                            VBMotor.setPower(P/(VBMotor.getCurrentPosition()-600)/40);
+                        }
+
+                    }
                 } else if (VBMotor.getCurrentPosition()!=VBMotor.getTargetPosition()&&VBMotor.getTargetPosition()<VBMotor.getCurrentPosition()){
                     VBMotor.setPower(NP); //continue going backwards to target pos
-                } else {
+                } else if (VBMotor.getCurrentPosition()==VBMotor.getTargetPosition()){
                     VBMotor.setPower(0); // stop going after reaching target pos
                 }
             }
@@ -63,8 +112,13 @@ public class Increments extends LinearOpMode {
             telemetry.addData("positionL", LSlides.getCurrentPosition());
             telemetry.addData("positionR", RSlides.getCurrentPosition());
             telemetry.addData("positionV", VBMotor.getCurrentPosition());
-            telemetry.addData("busy", VBMotor.isBusy());
+            telemetry.addData("lBusy", LSlides.isBusy());
+            telemetry.addData("rBusy", RSlides.isBusy());
+            telemetry.addData("vBusy", VBMotor.isBusy());
+            telemetry.addData("lTargetPos", LSlides.isBusy());
+            telemetry.addData("rTargetPos", RSlides.isBusy());
             telemetry.addData("targetPos", VBMotor.getTargetPosition());
+            //telemetry.addData("time", P);
             telemetry.update(); //debug stuff
         }
     }
