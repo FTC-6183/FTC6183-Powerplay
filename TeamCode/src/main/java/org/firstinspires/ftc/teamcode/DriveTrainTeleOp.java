@@ -17,7 +17,9 @@ public class DriveTrainTeleOp extends LinearOpMode {
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        double speedDivide;
         waitForStart(); //waits for start
+
         //double yOld = 0;
         //double xOld = 0;
         while (opModeIsActive()){
@@ -29,7 +31,11 @@ public class DriveTrainTeleOp extends LinearOpMode {
             //xOld += 0.1*Math.signum(gamepad1.right_stick_x)/50;
 
             double rx = gamepad1.right_stick_x;
-            double speedDivide = gamepad1.right_trigger*2+1;
+            if (gamepad1.right_bumper){
+                speedDivide = 3;
+            } else {
+                speedDivide = 1;
+            }
 
             /*
             if (Math.abs(x)<0.15){
