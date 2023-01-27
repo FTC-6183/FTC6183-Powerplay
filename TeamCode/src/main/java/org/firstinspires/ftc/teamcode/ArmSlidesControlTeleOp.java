@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -10,6 +9,9 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
+
 public class ArmSlidesControlTeleOp {
     public enum State{
         START,
@@ -17,18 +19,25 @@ public class ArmSlidesControlTeleOp {
         DEPOSIT,
         RETURN
     }
+    public State liftState = State.START;
     private int targetPos = 0;
     private int armTarget = 0;
     private double ka = 0;
-    private double rad = 2*(Math.PI)/1425.1;
+    private double rad = 2*(Math.PI)/5281.1;
     private double offset;
     private boolean back = false;
     private boolean adjusted = false;
+    private ElapsedTime eTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    private DcMotorEx RSlides;
+    private DcMotorEx LSlides;
+    private DcMotorEx VBMotor;
+    private CRServo Intake;
+    private Telemetry telemetry;
     public ArmSlidesControlTeleOp(HardwareMap hardwareMap){
-        DcMotorEx RSlides = hardwareMap.get(DcMotorEx.class, "RSlides");
-        DcMotorEx LSlides = hardwareMap.get(DcMotorEx.class, "LSlides");
-        DcMotorEx VBMotor = hardwareMap.get(DcMotorEx.class, "VBMotor");
-        CRServo Intake = hardwareMap.get(CRServo.class, "Intake");
+        RSlides = hardwareMap.get(DcMotorEx.class, "RSlides");
+        LSlides = hardwareMap.get(DcMotorEx.class, "LSlides");
+        VBMotor = hardwareMap.get(DcMotorEx.class, "VBMotor");
+        Intake = hardwareMap.get(CRServo.class, "Intake");
         RSlides.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         LSlides.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         VBMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -41,12 +50,10 @@ public class ArmSlidesControlTeleOp {
         VBMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         LSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         RSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        ElapsedTime eTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         State liftState = State.START;
     }
+
     public void ArmSlides(double rTrig, double lTrig, boolean a, boolean b, boolean y) {
-        
-        State();
 
         switch(liftState) {
             case START:
@@ -56,20 +63,20 @@ public class ArmSlidesControlTeleOp {
                 VBMotor.setTargetPosition(0);//back to zero position
                 LSlides.setTargetPosition(0);
                 RSlides.setTargetPosition(0);
-                if (gamepad1.right_trigger > 0.2) { //intake intake intake
+                if (rTrig > 0.2) { //intake intake intake
                     Intake.setPower(0.5);
                 }
-                if (gamepad1.a) { //level 1
+                if (a) { //level 1
                     targetPos = 0;
                     armTarget = 525;
                     back = true;
                     liftState = State.LIFT;
-                } else if (gamepad1.b) {
+                } else if (b) {
                     targetPos = 1600; //level 2
                     armTarget = 525;
                     back = true;
                     liftState = State.LIFT;
-                } else if (gamepad1.y) {
+                } else if (y) {
                     targetPos = 2700; //level 3
                     armTarget = 525;
                     back = false;
@@ -83,7 +90,7 @@ public class ArmSlidesControlTeleOp {
                 VBMotor.setTargetPosition(armTarget); //halfway up
                 LSlides.setTargetPosition(targetPos); //full up
                 RSlides.setTargetPosition(-targetPos);
-                if (gamepad1.left_trigger > 0.2) {
+                if (lTrig > 0.2) {
                     if (back) { //whether the arm goes fully on the back
                         armTarget = 800;
                     } else {

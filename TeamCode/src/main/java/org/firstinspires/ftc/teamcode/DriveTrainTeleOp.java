@@ -4,38 +4,42 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
-@TeleOp
-public class DriveTrainTeleOp extends LinearOpMode {
-    @Override
-    public void runOpMode() throws InterruptedException{
-        DcMotorEx backLeft = hardwareMap.get(DcMotorEx.class, "BL");
-        DcMotorEx backRight = hardwareMap.get(DcMotorEx.class, "BR");
-        DcMotorEx frontLeft = hardwareMap.get(DcMotorEx.class, "FL");
-        DcMotorEx frontRight = hardwareMap.get(DcMotorEx.class, "FR");
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
+
+public class DriveTrainTeleOp {
+    private DcMotorEx backLeft;
+    private DcMotorEx backRight;
+    private DcMotorEx frontLeft;
+    private DcMotorEx frontRight;
+    private double speedDivide;
+    public DriveTrainTeleOp(HardwareMap hardwareMap) {
+        backLeft = hardwareMap.get(DcMotorEx.class, "BL");
+        backRight = hardwareMap.get(DcMotorEx.class, "BR");
+        frontLeft = hardwareMap.get(DcMotorEx.class, "FL");
+        frontRight = hardwareMap.get(DcMotorEx.class, "FR");
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        double speedDivide;
-        waitForStart(); //waits for start
 
-        //double yOld = 0;
-        //double xOld = 0;
-        while (opModeIsActive()){
-            double y = 0.8*(Math.pow(-gamepad1.left_stick_y,2))*Math.signum(-gamepad1.left_stick_y); //y value is inverted
-            double x = 0.8*(Math.pow(gamepad1.left_stick_x,2))*Math.signum(gamepad1.left_stick_x);
-            //double yNew = Math.min(yOld,y);
-            //double xNew = Math.min(xOld,x);
-            //yOld += 0.1*Math.signum(-gamepad1.left_stick_y)/50;
-            //xOld += 0.1*Math.signum(gamepad1.right_stick_x)/50;
+    }
+    public void DriveTrain(double lStickX, double lStickY, double rStickX, boolean rBump){
+        double y = 0.8*(Math.pow(-lStickY,2))*Math.signum(-lStickY); //y value is inverted
+        double x = 0.8*(Math.pow(lStickX,2))*Math.signum(lStickX);
+        //double yNew = Math.min(yOld,y);
+        //double xNew = Math.min(xOld,x);
+        //yOld += 0.1*Math.signum(-gamepad1.left_stick_y)/50;
+        //xOld += 0.1*Math.signum(gamepad1.right_stick_x)/50;
 
-            double rx = gamepad1.right_stick_x;
-            if (gamepad1.right_bumper){
-                speedDivide = 3;
-            } else {
-                speedDivide = 1;
-            }
+        double rx = rStickX;
+        if (rBump){
+            speedDivide = 3;
+        } else {
+            speedDivide = 1;
+        }
 
             /*
             if (Math.abs(x)<0.15){
@@ -43,28 +47,21 @@ public class DriveTrainTeleOp extends LinearOpMode {
             }
             */
 
-            double frontLeftSpd=-(y+x+rx)/speedDivide; //y+x+rx
-            double frontRightSpd=(y-x-rx)/speedDivide;
-            double backLeftSpd=-(y-x+rx)/speedDivide; //y-x+rx
-            double backRightSpd=(y+x-rx)/speedDivide;
+        double frontLeftSpd=-(y+x+rx)/speedDivide; //y+x+rx
+        double frontRightSpd=(y-x-rx)/speedDivide;
+        double backLeftSpd=-(y-x+rx)/speedDivide; //y-x+rx
+        double backRightSpd=(y+x-rx)/speedDivide;
 
-            double denominator = Math.max(Math.abs(y)+Math.abs(x)+Math.abs(rx),1);
-            frontRightSpd /= denominator;
-            frontLeftSpd /= denominator;
-            backRightSpd /= denominator;
-            backLeftSpd /= denominator;
+        double denominator = Math.max(Math.abs(y)+Math.abs(x)+Math.abs(rx),1);
+        frontRightSpd /= denominator;
+        frontLeftSpd /= denominator;
+        backRightSpd /= denominator;
+        backLeftSpd /= denominator;
 
-            frontLeft.setPower(frontLeftSpd);
-            frontRight.setPower(frontRightSpd);
-            backLeft.setPower(backLeftSpd);
-            backRight.setPower(backRightSpd);
-
-            telemetry.addData("leftStickY", y);
-            telemetry.addData("leftStickX",x);
-            telemetry.update();
-
-
+        frontLeft.setPower(frontLeftSpd);
+        frontRight.setPower(frontRightSpd);
+        backLeft.setPower(backLeftSpd);
+        backRight.setPower(backRightSpd);
 
         }
     }
-}
