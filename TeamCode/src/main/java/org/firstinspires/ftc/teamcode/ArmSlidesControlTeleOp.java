@@ -23,7 +23,7 @@ public class ArmSlidesControlTeleOp {
     private int targetPos = 0;
     private int armTarget = 0;
     private double ka = 0;
-    private double rad = 2*(Math.PI)/5281.1;
+    private double rad = 2*(Math.PI)/1425.1;
     private double offset;
     private boolean back = false;
     private boolean adjusted = false;
@@ -53,55 +53,76 @@ public class ArmSlidesControlTeleOp {
         State liftState = State.START;
     }
 
-    public void ArmSlides(double rTrig, double lTrig, boolean a, boolean b, boolean y) {
+    public void ArmSlides(double rTrig, double lTrig, boolean a, boolean b, boolean y, Telemetry telemetry) {
 
         switch(liftState) {
             case START:
-
+                ka=0;
                 adjusted = false;
                 Intake.setPower(0);
                 VBMotor.setTargetPosition(0);//back to zero position
                 LSlides.setTargetPosition(0);
                 RSlides.setTargetPosition(0);
                 if (rTrig > 0.2) { //intake intake intake
-                    Intake.setPower(0.5);
+                    Intake.setPower(0.8);
                 }
                 if (a) { //level 1
                     targetPos = 0;
                     armTarget = 525;
                     back = true;
+                    eTime.reset();
                     liftState = State.LIFT;
                 } else if (b) {
                     targetPos = 1600; //level 2
                     armTarget = 525;
                     back = true;
+                    eTime.reset();
                     liftState = State.LIFT;
                 } else if (y) {
                     targetPos = 2700; //level 3
                     armTarget = 525;
                     back = false;
+                    eTime.reset();
                     liftState = State.LIFT;
                 }
                 break;
             case LIFT:
-                LSlides.setPower(0.15); //set power to go to position
-                RSlides.setPower(-0.15);
+                LSlides.setPower(0.35); //set power to go to position
+                RSlides.setPower(-0.35);
                 VBMotor.setPower(0.4);
+                if (a) { //level 1
+                    targetPos = 0;
+                    armTarget = 525;
+                    back = true;
+                    eTime.reset();
+                } else if (b) {
+                    targetPos = 1600; //level 2
+                    armTarget = 525;
+                    back = true;
+                    eTime.reset();
+                } else if (y) {
+                    targetPos = 2700; //level 3
+                    armTarget = 525;
+                    back = false;
+                    eTime.reset();
+                }
                 VBMotor.setTargetPosition(armTarget); //halfway up
-                LSlides.setTargetPosition(targetPos); //full up
-                RSlides.setTargetPosition(-targetPos);
-                if (lTrig > 0.2) {
+                if (rTrig > 0.2) { //intake intake intake
+                    Intake.setPower(0.8);
+                }
+                if (eTime.time()>1200){
+                    LSlides.setTargetPosition(targetPos); //full up
+                    RSlides.setTargetPosition(-targetPos);
+                } else if (eTime.time()>500&&((Math.abs(LSlides.getCurrentPosition()-LSlides.getTargetPosition()))<20)&&(Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<20)) {
                     if (back) { //whether the arm goes fully on the back
                         armTarget = 800;
                     } else {
                         armTarget = 786;
                     }
-                    VBMotor.setPower(0.05);
-                    VBMotor.setTargetPosition(armTarget); //finish art movement
-                    telemetry.addData("currentPos",VBMotor.getCurrentPosition());
-                    telemetry.addData("TargetPos",VBMotor.getTargetPosition());
-                    telemetry.update();
-                    if ((VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<30) {
+                    VBMotor.setTargetPosition(armTarget); //finish arm movement
+                    VBMotor.setPower(0.4);
+
+                    if (Math.abs(VBMotor.getCurrentPosition()-armTarget)<20) {
                         VBMotor.setPower(0);
                         LSlides.setPower(0);
                         RSlides.setPower(0);
@@ -140,8 +161,12 @@ public class ArmSlidesControlTeleOp {
                     } else {
                         VBMotor.setPower(0);
                     }*/
-                if ((eTime.time()>250)||(eTime.time()>250&&adjusted)){ //deposit after some time, unless it is adjusted
+                if (lTrig>0.2){ //deposit after some time, unless it is adjusted
                     Intake.setPower(-0.8); //deposit
+                    if (ka==0){
+                        eTime.reset();
+                    }
+                    ka+=1;
                     if (eTime.time()>1210) {
                             /*
                             VBMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION); //get ready for zero positioning
@@ -156,7 +181,7 @@ public class ArmSlidesControlTeleOp {
                         VBMotor.setTargetPosition(525);//back to zero position
                         LSlides.setTargetPosition(0);
                         RSlides.setTargetPosition(0);
-                        if (((VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<30)&&(LSlides.getCurrentPosition()-LSlides.getTargetPosition()<30)){
+                        if ((Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<30)&&(Math.abs(LSlides.getCurrentPosition()-LSlides.getTargetPosition())<30)){
                             VBMotor.setPower(0);
                             VBMotor.setTargetPosition(0);
                             liftState = State.RETURN;
@@ -167,14 +192,13 @@ public class ArmSlidesControlTeleOp {
             case RETURN:
                 offset = (Math.sin((rad*(525)-rad*(VBMotor.getCurrentPosition()))/2));
                 VBMotor.setPower((offset/5)-0.2);
-                telemetry.addData("power",VBMotor.getPower());
-                telemetry.addData("currentPos",VBMotor.getCurrentPosition());
-                telemetry.addData("TargetPos",VBMotor.getTargetPosition());
-                telemetry.update();
-                if (VBMotor.getCurrentPosition()-VBMotor.getTargetPosition()<30){
+                if (Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<30){
                     liftState = State.START;
                 }
                 break;
         }
+        telemetry.addData("state",liftState);
+        telemetry.addData("v4b pos", VBMotor.getCurrentPosition());
+        telemetry.update();
     }
 }

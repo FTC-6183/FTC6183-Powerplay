@@ -29,27 +29,15 @@ public class DriveTrainTeleOp {
     public void DriveTrain(double lStickX, double lStickY, double rStickX, boolean rBump){
         double y = 0.8*(Math.pow(-lStickY,2))*Math.signum(-lStickY); //y value is inverted
         double x = 0.8*(Math.pow(lStickX,2))*Math.signum(lStickX);
-        //double yNew = Math.min(yOld,y);
-        //double xNew = Math.min(xOld,x);
-        //yOld += 0.1*Math.signum(-gamepad1.left_stick_y)/50;
-        //xOld += 0.1*Math.signum(gamepad1.right_stick_x)/50;
-
         double rx = rStickX;
         if (rBump){
             speedDivide = 3;
         } else {
             speedDivide = 1;
         }
-
-            /*
-            if (Math.abs(x)<0.15){
-                x=0;
-            }
-            */
-
-        double frontLeftSpd=-(y+x+rx)/speedDivide; //y+x+rx
+        double frontLeftSpd=-(y+x+rx)/speedDivide;
         double frontRightSpd=(y-x-rx)/speedDivide;
-        double backLeftSpd=-(y-x+rx)/speedDivide; //y-x+rx
+        double backLeftSpd=-(y-x+rx)/speedDivide;
         double backRightSpd=(y+x-rx)/speedDivide;
 
         double denominator = Math.max(Math.abs(y)+Math.abs(x)+Math.abs(rx),1);
