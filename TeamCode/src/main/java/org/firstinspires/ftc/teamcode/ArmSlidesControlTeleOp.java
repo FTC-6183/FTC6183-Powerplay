@@ -113,7 +113,8 @@ public class ArmSlidesControlTeleOp {
                 if (eTime.time()>1200){
                     LSlides.setTargetPosition(targetPos); //full up
                     RSlides.setTargetPosition(-targetPos);
-                } else if (eTime.time()>500&&((Math.abs(LSlides.getCurrentPosition()-LSlides.getTargetPosition()))<20)&&(Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<20)) {
+                }
+                if (eTime.time()>1700&&((Math.abs(LSlides.getCurrentPosition()-LSlides.getTargetPosition()))<20)&&(Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<20)) {
                     if (back) { //whether the arm goes fully on the back
                         armTarget = 800;
                     } else {
@@ -199,6 +200,10 @@ public class ArmSlidesControlTeleOp {
         }
         telemetry.addData("state",liftState);
         telemetry.addData("v4b pos", VBMotor.getCurrentPosition());
+        telemetry.addData("v4b pos", VBMotor.getTargetPosition());
+        telemetry.addData("eTime",eTime.time());
+        telemetry.addData("Lslides pos",LSlides.getCurrentPosition());
+        telemetry.addData("lSlides target",LSlides.getTargetPosition());
         telemetry.update();
     }
 }
