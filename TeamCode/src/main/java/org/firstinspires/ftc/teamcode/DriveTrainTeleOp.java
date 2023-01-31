@@ -24,9 +24,17 @@ public class DriveTrainTeleOp {
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
     }
-    public void DriveTrain(double lStickX, double lStickY, double rStickX, boolean rBump){
+    public void DriveTrain(double lStickX, double lStickY, double rStickX, boolean rBump, Telemetry telemetry){
         double y = 0.8*(Math.pow(-lStickY,2))*Math.signum(-lStickY); //y value is inverted
         double x = 0.8*(Math.pow(lStickX,2))*Math.signum(lStickX);
         double rx = rStickX;
@@ -50,6 +58,11 @@ public class DriveTrainTeleOp {
         frontRight.setPower(frontRightSpd);
         backLeft.setPower(backLeftSpd);
         backRight.setPower(backRightSpd);
-
-        }
+        /*
+        telemetry.addData("FL", frontLeft.getCurrentPosition());
+        telemetry.addData("FR",frontRight.getCurrentPosition());
+        telemetry.addData("BL",backLeft.getCurrentPosition());
+        telemetry.addData("BR",backRight.getCurrentPosition());
+        telemetry.update();*/
     }
+}

@@ -55,7 +55,7 @@ public class ArmSlidesControlTeleOp {
         State liftState = State.START;
     }
 
-    public void ArmSlides(double rTrig, double lTrig, boolean a, boolean b, boolean y, Telemetry telemetry, boolean dpadU, boolean dpadD) {
+    public void ArmSlides(double rTrig, double lTrig, boolean a, boolean b, boolean y, Telemetry telemetry, boolean dpadU, boolean dpadD, boolean lBump) {
 
         switch(liftState) {
             case START:
@@ -64,7 +64,18 @@ public class ArmSlidesControlTeleOp {
                 boom = false;
                 Intake.setPower(0);
                 if (rTrig > 0.2) { //intake intake intake
+                    LSlides.setPower(-0.3);
+                    RSlides.setPower(0.3);
+                    LSlides.setTargetPosition(0);
+                    RSlides.setTargetPosition(0);
                     Intake.setPower(0.8);
+
+                } else if (lBump){
+                    LSlides.setPower(0.3);
+                    RSlides.setPower(-0.3);
+                    LSlides.setTargetPosition(600);
+                    RSlides.setTargetPosition(-600);
+
                 }
                 if (a) { //level 1
                     targetPos = 0;
@@ -73,13 +84,13 @@ public class ArmSlidesControlTeleOp {
                     eTime.reset();
                     liftState = State.LIFT;
                 } else if (b) {
-                    targetPos = 1600; //level 2
+                    targetPos = 1800; //level 2
                     armTarget = 525;
                     back = true;
                     eTime.reset();
                     liftState = State.LIFT;
                 } else if (y) {
-                    targetPos = 2700; //level 3
+                    targetPos = 2650; //level 3
                     armTarget = 525;
                     back = false;
                     eTime.reset();
@@ -94,46 +105,58 @@ public class ArmSlidesControlTeleOp {
                 }
                 break;
             case LIFT:
-                LSlides.setPower(0.35); //set power to go to position
-                RSlides.setPower(-0.35);
+                Intake.setPower(0);
+                if (rTrig>0.2) {
+                    Intake.setPower(0.8);
+                }
+                LSlides.setPower(0.4); //set power to go to position
+                RSlides.setPower(-0.4);
                 VBMotor.setPower(0.25);
                 if (a) { //level 1
                     targetPos = 0;
                     armTarget = 525;
                     back = true;
+                    adjusted = true;
                     eTime.reset();
                 } else if (b) {
                     targetPos = 1800; //level 2
                     armTarget = 525;
                     back = true;
+                    adjusted = true;
                     eTime.reset();
                 } else if (y) {
-                    targetPos = 2800; //level 3
+                    targetPos = 2650; //level 3
                     armTarget = 525;
                     back = false;
+                    adjusted = true;
                     eTime.reset();
                 }
                 //halfway up
-                if (rTrig > 0.2) { //intake intake intake
-                    Intake.setPower(0.8);
-                }
                 if (eTime.time()>1200){
-                    LSlides.setTargetPosition(targetPos); //full up
-                    RSlides.setTargetPosition(-targetPos);
+                    if (back){
+                        LSlides.setTargetPosition(targetPos); //full up
+                        RSlides.setTargetPosition(-targetPos);
+                    } else {
+                        LSlides.setTargetPosition(3090);
+                        RSlides.setTargetPosition(-3240);
+                    }
+
                 }
-                if (VBMotor.getCurrentPosition()<525){
+                if ((VBMotor.getCurrentPosition()<525)||(adjusted)){
                     VBMotor.setTargetPosition(armTarget);
+                    adjusted = false;
                 }
                 else if (eTime.time()>1800&&((Math.abs(LSlides.getCurrentPosition()-LSlides.getTargetPosition()))<20)&&(Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<20)) {
                     if (back) { //whether the arm goes fully on the back
-                        armTarget = 800;
+                        armTarget = 750;
                     } else {
-                        armTarget = 786;
+                        armTarget = 725;
                     }
                      //finish arm movement
                     VBMotor.setPower(0.12);
                     VBMotor.setTargetPosition(armTarget);
-                    if (Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<20) {
+
+                    if ((Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<20)&&(lTrig>0.2)) {
                         eTime.reset();
                         liftState = State.DEPOSIT;
                     }
@@ -141,32 +164,37 @@ public class ArmSlidesControlTeleOp {
                 break;
             case DEPOSIT:
                 VBMotor.setPower(-0.2);
-                LSlides.setPower(0.2);
-                RSlides.setPower(-0.2);
+                LSlides.setPower(0.7);
+                RSlides.setPower(-0.7);
                 VBMotor.setTargetPosition(armTarget);//back to zero position
-                LSlides.setTargetPosition(targetPos);
-                RSlides.setTargetPosition(-targetPos);
-                if ((lTrig>0.2)||(x>1)){ //deposit after some time, unless it is adjusted
+                if (back||(targetPos==600)) {
+                    LSlides.setTargetPosition(targetPos); //full up
+                    RSlides.setTargetPosition(-targetPos);
+                } else if (!back) {
+                    LSlides.setTargetPosition(3090);
+                    RSlides.setTargetPosition(-3240);
+                }
+                if ((lTrig>0.2)||(x>1)){ //deposit after some time
                     Intake.setPower(-0.8); //deposit
                     if (x==0){
                         eTime.reset();
                     }
                     x+=1;
-                    if (eTime.time()>400) {
+                    if (eTime.time()>700) {
                             /*
                             VBMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION); //get ready for zero positioning
                             LSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                             RSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);*/
                         Intake.setPower(0);
 
-                        LSlides.setPower(-0.3);
-                        RSlides.setPower(0.3);
+                        LSlides.setPower(-0.5);
+                        RSlides.setPower(0.5);
                         //VBMotor.setPower(((offset)*x)-0.2);
                         VBMotor.setPower(-0.1);
                         armTarget = 525;
-                        targetPos = 0;
+                        targetPos = 600;
 
-                        if ((lTrig>0.2)&&(Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<30)&&(Math.abs(LSlides.getCurrentPosition()-LSlides.getTargetPosition())<30)){
+                        if ((lTrig>0.2)&&(Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<30)&&(Math.abs(LSlides.getCurrentPosition()-600)<30)){
                             VBMotor.setPower(0);
                             VBMotor.setTargetPosition(0);
                             liftState = State.RETURN;
@@ -176,7 +204,7 @@ public class ArmSlidesControlTeleOp {
                 break;
             case RETURN:
                 offset = (Math.sin((rad*(525)-rad*(VBMotor.getCurrentPosition()))/2));
-                VBMotor.setPower((offset/5)-0.2);
+                VBMotor.setPower((offset/5)-0.4);
                 if (Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<35){
                     LSlides.setPower(0);
                     RSlides.setPower(0);
@@ -184,12 +212,15 @@ public class ArmSlidesControlTeleOp {
                 }
                 break;
         }
+
         telemetry.addData("state",liftState);
         telemetry.addData("v4b pos", VBMotor.getCurrentPosition());
         telemetry.addData("v4b target", VBMotor.getTargetPosition());
         telemetry.addData("eTime",eTime.time());
         telemetry.addData("Lslides pos",LSlides.getCurrentPosition());
         telemetry.addData("lSlides target",LSlides.getTargetPosition());
+        telemetry.addData("rslide pos", RSlides.getCurrentPosition());
+        telemetry.addData("rslide target",RSlides.getTargetPosition());
         telemetry.addData("busyL",LSlides.isBusy());
         telemetry.update();
     }
