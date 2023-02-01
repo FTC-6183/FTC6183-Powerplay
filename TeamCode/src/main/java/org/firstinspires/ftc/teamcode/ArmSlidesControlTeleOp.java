@@ -19,7 +19,7 @@ public class ArmSlidesControlTeleOp {
         DEPOSIT,
         RETURN
     }
-    private double previousError1 = 0, error1 = 0, integralSum1, derivative1;
+    private double previousError1 = 0, error1 = 0, integralSum1, derivative1, VBMotorPower;
     private double Kp = 0.003, Kd = 0, Ki = 0; //Don't use Ki
     private ElapsedTime lowerTimer = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
     public State liftState = State.START;
@@ -52,7 +52,7 @@ public class ArmSlidesControlTeleOp {
         RSlides.setTargetPosition(0);
         LSlides.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         LSlides.setTargetPosition(0);
-        VBMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        VBMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         LSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         RSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         State liftState = State.START;
@@ -98,13 +98,14 @@ public class ArmSlidesControlTeleOp {
                     eTime.reset();
                     liftState = State.LIFT;
                 }
+                /*
                 if (dpadU){
                     VBMotor.setTargetPosition(pos2);
                     pos2+=3;
                 } else if (dpadD){
                     VBMotor.setTargetPosition(pos2);
                     pos2-=3;
-                }
+                }*/
                 break;
             case LIFT:
                 Intake.setPower(0);
@@ -113,7 +114,6 @@ public class ArmSlidesControlTeleOp {
                 }
                 LSlides.setPower(0.4); //set power to go to position
                 RSlides.setPower(-0.4);
-                VBMotor.setPower(0.25);
                 if (a) { //level 1
                     targetPos = 0;
                     armTarget = 525;
@@ -145,7 +145,6 @@ public class ArmSlidesControlTeleOp {
 
                 }
                 if ((VBMotor.getCurrentPosition()<525)||(adjusted)){
-                    VBMotor.setTargetPosition(armTarget);
                     adjusted = false;
                 }
                 else if (eTime.time()>1800&&((Math.abs(LSlides.getCurrentPosition()-LSlides.getTargetPosition()))<20)&&(Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<20)) {
@@ -155,8 +154,6 @@ public class ArmSlidesControlTeleOp {
                         armTarget = 725;
                     }
                      //finish arm movement
-                    VBMotor.setPower(0.12);
-                    VBMotor.setTargetPosition(armTarget);
 
                     if ((Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<20)&&(lTrig>0.2)) {
                         eTime.reset();
@@ -165,10 +162,8 @@ public class ArmSlidesControlTeleOp {
                 }
                 break;
             case DEPOSIT:
-                VBMotor.setPower(-0.2);
                 LSlides.setPower(0.7);
                 RSlides.setPower(-0.7);
-                VBMotor.setTargetPosition(armTarget);//back to zero position
                 if (back||(targetPos==600)) {
                     LSlides.setTargetPosition(targetPos); //full up
                     RSlides.setTargetPosition(-targetPos);
@@ -192,13 +187,11 @@ public class ArmSlidesControlTeleOp {
                         LSlides.setPower(-0.5);
                         RSlides.setPower(0.5);
                         //VBMotor.setPower(((offset)*x)-0.2);
-                        VBMotor.setPower(-0.1);
                         armTarget = 525;
                         targetPos = 600;
 
                         if ((lTrig>0.2)&&(Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<30)&&(Math.abs(LSlides.getCurrentPosition()-600)<30)){
-                            VBMotor.setPower(0);
-                            VBMotor.setTargetPosition(0);
+                            armTarget = 0;
                             liftState = State.RETURN;
                         }
                     }
@@ -206,7 +199,7 @@ public class ArmSlidesControlTeleOp {
                 break;
             case RETURN:
                 offset = (Math.sin((rad*(525)-rad*(VBMotor.getCurrentPosition()))/2));
-                VBMotor.setPower((offset/5)-0.4);
+                //VBMotor.setPower((offset/5)-0.4);
                 if (Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<35){
                     LSlides.setPower(0);
                     RSlides.setPower(0);
@@ -214,7 +207,8 @@ public class ArmSlidesControlTeleOp {
                 }
                 break;
         }
-
+        VBMotorPower = PIDControl1(armTarget, VBMotor.getCurrentPosition());
+        VBMotor.setPower(VBMotorPower);
         telemetry.addData("state",liftState);
         telemetry.addData("v4b pos", VBMotor.getCurrentPosition());
         telemetry.addData("v4b target", VBMotor.getTargetPosition());
