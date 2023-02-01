@@ -19,6 +19,9 @@ public class ArmSlidesControlTeleOp {
         DEPOSIT,
         RETURN
     }
+    private double previousError1 = 0, error1 = 0, integralSum1, derivative1;
+    private double Kp = 0.003, Kd = 0, Ki = 0; //Don't use Ki
+    private ElapsedTime lowerTimer = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
     public State liftState = State.START;
     private int targetPos = 0;
     private int armTarget = 0;
@@ -56,7 +59,6 @@ public class ArmSlidesControlTeleOp {
     }
 
     public void ArmSlides(double rTrig, double lTrig, boolean a, boolean b, boolean y, Telemetry telemetry, boolean dpadU, boolean dpadD, boolean lBump) {
-
         switch(liftState) {
             case START:
                 x=0;
@@ -223,5 +225,19 @@ public class ArmSlidesControlTeleOp {
         telemetry.addData("rslide target",RSlides.getTargetPosition());
         telemetry.addData("busyL",LSlides.isBusy());
         telemetry.update();
+    }
+    public double PIDControl1(double target, double state) {
+        previousError1 = error1;
+        error1 = target - state;
+        integralSum1 += error1 * lowerTimer.seconds();
+        derivative1 = (error1 - previousError1) / lowerTimer.seconds();
+
+        lowerTimer.reset();
+        double output = (error1 * Kp) + (derivative1 * Kd) + (integralSum1 * Ki);
+        //inc Kp if it is too low power
+        //inc Kd = less oscillation
+        //Ki is yucky
+
+        return output;
     }
 }
