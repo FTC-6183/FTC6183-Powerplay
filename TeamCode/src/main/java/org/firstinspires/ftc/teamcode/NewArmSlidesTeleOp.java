@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 public class NewArmSlidesTeleOp {
     public enum LiftState{
         START,
@@ -15,18 +17,15 @@ public class NewArmSlidesTeleOp {
         RETURN,
         secondRETURN
     }
+    private double previousError1 = 0, error1 = 0, integralSum1, derivative1, VBMotorPower;
+    private double Kp = 0.0045, Kd = 0, Ki = 0; //Don't use Ki
+    private ElapsedTime lowerTimer = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
     public LiftState liftState = LiftState.START;
-    private int targetPos = 0;
-    private int armTarget = 0;
-    private boolean back; //whether or not it is level 3
-    private boolean adjusted;
+    private int targetPos = 0,armTarget = 0, x;
+    private boolean back, adjusted;
     private ElapsedTime eTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
-    private DcMotorEx RSlides;
-    private DcMotorEx LSlides;
-    private DcMotorEx VBMotor;
+    private DcMotorEx RSlides, LSlides, VBMotor;
     private CRServo Intake;
-    private double rad = 2*(Math.PI)/1425.1;
-    private double offset;
     public NewArmSlidesTeleOp(HardwareMap hardwareMap){
         RSlides = hardwareMap.get(DcMotorEx.class, "RSlides");
         LSlides = hardwareMap.get(DcMotorEx.class, "LSlides");
@@ -46,7 +45,7 @@ public class NewArmSlidesTeleOp {
         RSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         LiftState liftState = LiftState.START;
     }
-    public void Lifter(double rTrig, double lTrig, boolean a, boolean b, boolean y, boolean lBump){//add telemetry
+    public void Lifter(double rTrig, double lTrig, boolean a, boolean b, boolean y, boolean lBump, double lSticky, double rSticky, Telemetry telemetry){//add telemetry
         switch(liftState){
             case START: //back to start
                 armTarget = 525;
@@ -57,8 +56,9 @@ public class NewArmSlidesTeleOp {
                 } else if (lBump){ //reset to state in which you can intake again
                     LSlides.setPower(0.3);
                     RSlides.setPower(-0.3);
-                    LSlides.setTargetPosition(600);
-                    RSlides.setTargetPosition(-600);
+                    targetPos = 600;
+                    LSlides.setTargetPosition(targetPos);
+                    RSlides.setTargetPosition(-targetPos);
                 }
                 if (a) {
                     targetPos = 0; //level 1
@@ -79,8 +79,9 @@ public class NewArmSlidesTeleOp {
             case INTAKE: //move the slides down and intake the cone with servo
                 LSlides.setPower(-0.3);
                 RSlides.setPower(0.3);
-                LSlides.setTargetPosition(0);
-                RSlides.setTargetPosition(0);
+                targetPos=0;
+                LSlides.setTargetPosition(targetPos);
+                RSlides.setTargetPosition(targetPos);
                 Intake.setPower(0.8);
                 liftState = LiftState.START;
             case LIFT: //first move arm halfway, then move slides full up
@@ -90,7 +91,6 @@ public class NewArmSlidesTeleOp {
                 }
                 LSlides.setPower(0.4); //set power to go to the position
                 RSlides.setPower(-0.4);
-                VBMotor.setPower(0.25);
                 if (a) { //level 1
                     targetPos = 0;
                     armTarget = 525;
@@ -114,32 +114,95 @@ public class NewArmSlidesTeleOp {
                     LSlides.setTargetPosition(targetPos); //full up
                     RSlides.setTargetPosition(-targetPos);
                 } else if ((eTime.time()>1200)&&(!back)){
-                    LSlides.setTargetPosition(3090);
-                    RSlides.setTargetPosition(-3240);
+                    LSlides.setTargetPosition(targetPos);
+                    RSlides.setTargetPosition(-targetPos-150);
                 }
                 if ((VBMotor.getCurrentPosition()<525)||(adjusted)){
-                    VBMotor.setTargetPosition(armTarget);
                     adjusted = false;
                 }
                 else if (eTime.time()>1800&&((Math.abs(LSlides.getCurrentPosition()-LSlides.getTargetPosition()))<20)&&(Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<20)) {
                     if (back) { //whether the arm goes fully on the back
-                        armTarget = 750;
+                        armTarget = 745;
                     } else {
-                        armTarget = 725;
+                        armTarget = 700;
                     }
                     //finish arm movement
-                    VBMotor.setPower(0.12);
-                    VBMotor.setTargetPosition(armTarget);
 
-                    if ((Math.abs(VBMotor.getCurrentPosition() - VBMotor.getTargetPosition()) < 20) && (lTrig > 0.2)) {
+                    if ((Math.abs(VBMotor.getCurrentPosition() - VBMotor.getTargetPosition()) < 20)) {
                         eTime.reset();
                         liftState = LiftState.DEPOSIT;
                     }
                 }
-                break;
-            case DEPOSIT:
 
                 break;
+            case DEPOSIT:
+                LSlides.setPower(0.7);
+                RSlides.setPower(0.7);
+                if (back||(targetPos==600)) {
+                    LSlides.setTargetPosition(targetPos); //full up
+                    RSlides.setTargetPosition(-targetPos);
+                } else if (!back) {
+                    LSlides.setTargetPosition(targetPos);
+                    RSlides.setTargetPosition(-targetPos-150);
+                }
+                if ((lTrig>0.2)||(x>1)){ //deposit after some time
+                    Intake.setPower(-0.8); //deposit
+                    if (x==0){
+                        eTime.reset();
+                    }
+                    x+=1;
+                    if (eTime.time()>700) {
+                        Intake.setPower(0);
+
+                        LSlides.setPower(-0.5);
+                        RSlides.setPower(0.5);
+                        armTarget = 525;
+                        targetPos = 600;
+
+                        if ((lTrig>0.2)&&(Math.abs(VBMotor.getCurrentPosition()-armTarget)<30)&&(Math.abs(LSlides.getCurrentPosition()-600)<30)){
+                            armTarget = 0;
+                            liftState = LiftState.RETURN;
+                        }
+                    }
+                }
+                break;
+            case RETURN:
+                if (Math.abs(VBMotor.getCurrentPosition()-armTarget)<35){
+                    LSlides.setPower(0);
+                    RSlides.setPower(0);
+                    liftState = LiftState.START;
+                }
+                break;
         }
+        VBMotorPower = PIDControl1(armTarget, VBMotor.getCurrentPosition());
+        VBMotor.setPower(VBMotorPower);
+        armTarget -= rSticky;
+        targetPos -= lSticky;
+        telemetry.addData("state",liftState);
+        telemetry.addData("v4b pos", VBMotor.getCurrentPosition());
+        telemetry.addData("armTarget",armTarget);
+        telemetry.addData("v4b power", VBMotor.getPower());
+        telemetry.addData("eTime",eTime.time());
+        telemetry.addData("Lslides pos",LSlides.getCurrentPosition());
+        telemetry.addData("lSlides target",LSlides.getTargetPosition());
+        telemetry.addData("rslide pos", RSlides.getCurrentPosition());
+        telemetry.addData("rslide target",RSlides.getTargetPosition());
+        telemetry.addData("busyL",LSlides.isBusy());
+        telemetry.update();
+    }
+    public double PIDControl1(double target, double state) {
+        previousError1 = error1;
+        error1 = target - state;
+        integralSum1 += error1 * lowerTimer.seconds();
+        derivative1 = (error1 - previousError1) / lowerTimer.seconds();
+
+        lowerTimer.reset();
+        double output = (error1 * Kp) + (derivative1 * Kd) + (integralSum1 * Ki);
+        //inc Kp if it is too low power
+        //inc Kd = less oscillation
+        //Ki is yucky
+
+        return output;
     }
 }
+//credit to steven gu of the gu family, in the gu variety

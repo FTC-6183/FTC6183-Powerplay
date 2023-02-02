@@ -20,7 +20,7 @@ public class ArmSlidesControlTeleOp {
         RETURN
     }
     private double previousError1 = 0, error1 = 0, integralSum1, derivative1, VBMotorPower;
-    private double Kp = 0.003, Kd = 0, Ki = 0; //Don't use Ki
+    private double Kp = 0.0045, Kd = 0, Ki = 0; //Don't use Ki
     private ElapsedTime lowerTimer = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
     public State liftState = State.START;
     private int targetPos = 0;
@@ -178,15 +178,10 @@ public class ArmSlidesControlTeleOp {
                     }
                     x+=1;
                     if (eTime.time()>700) {
-                            /*
-                            VBMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION); //get ready for zero positioning
-                            LSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                            RSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);*/
                         Intake.setPower(0);
 
                         LSlides.setPower(-0.5);
                         RSlides.setPower(0.5);
-                        //VBMotor.setPower(((offset)*x)-0.2);
                         armTarget = 525;
                         targetPos = 600;
 
@@ -198,8 +193,6 @@ public class ArmSlidesControlTeleOp {
                 }
                 break;
             case RETURN:
-                offset = (Math.sin((rad*(525)-rad*(VBMotor.getCurrentPosition()))/2));
-                //VBMotor.setPower((offset/5)-0.4);
                 if (Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<35){
                     LSlides.setPower(0);
                     RSlides.setPower(0);
