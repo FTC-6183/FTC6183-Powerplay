@@ -202,8 +202,8 @@ public class ArmSlidesControlTeleOp {
                         targetPos = 600;
 
                         if ((lTrig>0.2)&&(Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<30)&&(Math.abs(LSlides.getCurrentPosition()-600)<30)){
-                            VBMotor.setPower(0);
-                            VBMotor.setTargetPosition(0);
+                            armTarget =0;
+                            VBMotor.setTargetPosition(armTarget);
                             liftState = State.RETURN;
                         }
                     }
