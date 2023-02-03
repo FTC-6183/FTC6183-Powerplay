@@ -11,11 +11,11 @@ import org.firstinspires.ftc.teamcode.DriveTrainTeleOp;
 public class TwoPlayer extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException{
-        ManualArmSlides manualArmSlides = new ManualArmSlides(hardwareMap);
+        NewArmSlidesTeleOp newArmSlidesTeleOp = new NewArmSlidesTeleOp(hardwareMap);
         DriveTrainTeleOp driveTrainTeleOp  = new DriveTrainTeleOp(hardwareMap);
         waitForStart();
         while (opModeIsActive()){
-            manualArmSlides.ArmSlides(gamepad1.left_stick_y,gamepad1.right_stick_y,gamepad1.x,gamepad1.y,gamepad1.a,gamepad1.b,gamepad1.right_trigger,gamepad1.left_trigger,gamepad1.left_bumper,telemetry);
+            newArmSlidesTeleOp.Lifter(gamepad1.right_trigger,gamepad1.left_trigger,gamepad1.a,gamepad1.b,gamepad1.y,gamepad1.left_bumper,gamepad1.left_stick_y,gamepad1.right_stick_y,telemetry );
             driveTrainTeleOp.DriveTrain(gamepad2.left_stick_x,gamepad2.left_stick_y,gamepad2.right_stick_x,gamepad2.right_bumper, telemetry);
         }
 
