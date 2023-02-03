@@ -154,15 +154,12 @@ public class ArmSlidesControlTeleOp {
                     } else {
                         armTarget = 725;
                     }
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
+
                      //finish arm movement
-=======
+
                     //finish arm movement
->>>>>>> Stashed changes
-=======
+
                     //finish arm movement
->>>>>>> Stashed changes
                     VBMotor.setPower(0.12);
                     VBMotor.setTargetPosition(armTarget);
 
