@@ -154,7 +154,15 @@ public class ArmSlidesControlTeleOp {
                     } else {
                         armTarget = 725;
                     }
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
                      //finish arm movement
+=======
+                    //finish arm movement
+>>>>>>> Stashed changes
+=======
+                    //finish arm movement
+>>>>>>> Stashed changes
                     VBMotor.setPower(0.12);
                     VBMotor.setTargetPosition(armTarget);
 
@@ -225,19 +233,5 @@ public class ArmSlidesControlTeleOp {
         telemetry.addData("rslide target",RSlides.getTargetPosition());
         telemetry.addData("busyL",LSlides.isBusy());
         telemetry.update();
-    }
-    public double PIDControl1(double target, double state) {
-        previousError1 = error1;
-        error1 = target - state;
-        integralSum1 += error1 * lowerTimer.seconds();
-        derivative1 = (error1 - previousError1) / lowerTimer.seconds();
-
-        lowerTimer.reset();
-        double output = (error1 * Kp) + (derivative1 * Kd) + (integralSum1 * Ki);
-        //inc Kp if it is too low power
-        //inc Kd = less oscillation
-        //Ki is yucky
-
-        return output;
     }
 }
