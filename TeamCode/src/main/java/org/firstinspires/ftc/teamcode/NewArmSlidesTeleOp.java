@@ -21,7 +21,7 @@ public class NewArmSlidesTeleOp {
     private double Kp = 0.0045, Kd = 0, Ki = 0; //Don't use Ki
     private ElapsedTime lowerTimer = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
     public LiftState liftState = LiftState.START;
-    private int targetPos = 0,armTarget = 0, x, level;
+    private int targetPos = 0,armTarget = 0, x, level, ab,bc;
     private boolean adjusted;
     private ElapsedTime eTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     private DcMotorEx RSlides, LSlides, VBMotor;
@@ -48,13 +48,13 @@ public class NewArmSlidesTeleOp {
     public void Lifter(double rTrig, double lTrig, boolean a, boolean b, boolean y, boolean lBump, double lSticky, double rSticky, Telemetry telemetry){//add telemetry
         switch(liftState){
             case START: //back to start
+                x=ab=bc=0;
                 adjusted = false;
                 Intake.setPower(0);
                 if (rTrig>0.2){
                     liftState = LiftState.INTAKE;
                 } else if (lBump){ //reset to state in which you can intake again
-                    LSlides.setPower(0.3);
-                    RSlides.setPower(-0.3);
+                    LSlides.setPower(0.3);RSlides.setPower(-0.3);
                     targetPos = 600;
                 }
                 if (a) {
@@ -75,8 +75,7 @@ public class NewArmSlidesTeleOp {
                 }
                 break;
             case INTAKE: //move the slides down and intake the cone with servo
-                LSlides.setPower(-0.3);
-                RSlides.setPower(0.3);
+                LSlides.setPower(-0.3);RSlides.setPower(0.3);
                 targetPos = 0;
                 Intake.setPower(0.8);
                 liftState = LiftState.START;
@@ -84,9 +83,7 @@ public class NewArmSlidesTeleOp {
             case LIFT: //first move arm halfway, then move slides full up
                 if (rTrig>0.2){Intake.setPower(0.8);}
                 else{Intake.setPower(0);}
-
-                LSlides.setPower(0.4); //set power to go to the position
-                RSlides.setPower(-0.4);
+                LSlides.setPower(0.4);RSlides.setPower(-0.4);
                 if (a) { //level 1
                     level = 1;
                     armTarget = 525;
@@ -103,10 +100,17 @@ public class NewArmSlidesTeleOp {
                     adjusted = true;
                     eTime.reset();
                 }
-                if (eTime.time()>1200){
-                    if (level == 1){targetPos=100;}
-                    else if (level == 2){targetPos=1900;}
-                    else if (level == 3){targetPos=3090;}
+                if ((eTime.time()>1200)){
+                    if (adjusted||bc==0) {
+                        if (level == 1) {
+                            targetPos = 100;
+                        } else if (level == 2) {
+                            targetPos = 1900;
+                        } else if (level == 3) {
+                            targetPos = 3090;
+                        }
+                        bc+=1;
+                    }
                 }
                 if ((VBMotor.getCurrentPosition()<525)||(adjusted)){adjusted = false;}
                 else if (eTime.time()>1800&&((Math.abs(LSlides.getCurrentPosition()-LSlides.getTargetPosition()))<20)&&(Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<20)) {
@@ -119,8 +123,7 @@ public class NewArmSlidesTeleOp {
                 }
                 break;
             case DEPOSIT:
-                LSlides.setPower(0.7);
-                RSlides.setPower(0.7);
+                LSlides.setPower(0.7);RSlides.setPower(0.7);
                 if ((lTrig>0.2)||(x>1)){ //deposit after some time
                     Intake.setPower(-0.8); //deposit
                     if (x==0){eTime.reset();}
@@ -130,7 +133,11 @@ public class NewArmSlidesTeleOp {
                         LSlides.setPower(-0.5);
                         RSlides.setPower(0.5);
                         armTarget = 525;
-                        targetPos = 600;
+                        if ((targetPos!=600)&&(ab==0)){
+                            targetPos = 600;
+                            ab+=1;
+                        }
+
                         if ((lTrig>0.2)&&(Math.abs(VBMotor.getCurrentPosition()-armTarget)<30)&&(Math.abs(LSlides.getCurrentPosition()-600)<30)){
                             armTarget = 0;
                             liftState = LiftState.RETURN;
@@ -149,6 +156,7 @@ public class NewArmSlidesTeleOp {
         VBMotorPower = PIDControl1(armTarget, VBMotor.getCurrentPosition());
         VBMotor.setPower(VBMotorPower);
         targetPos -= lSticky;
+        if (targetPos<0){targetPos=0;}
         if ((level==3)&&(targetPos>2500)){
             LSlides.setTargetPosition(targetPos);
             RSlides.setTargetPosition(-targetPos-150);
