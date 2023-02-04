@@ -14,8 +14,7 @@ public class NewArmSlidesTeleOp {
         INTAKE,
         LIFT,
         DEPOSIT,
-        RETURN,
-        secondRETURN
+        RETURN
     }
     private double previousError1 = 0, error1 = 0, integralSum1, derivative1, VBMotorPower;
     private double Kp = 0.0045, Kd = 0, Ki = 0; //Don't use Ki
@@ -45,7 +44,7 @@ public class NewArmSlidesTeleOp {
         RSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         LiftState liftState = LiftState.START;
     }
-    public void Lifter(double rTrig, double lTrig, boolean a, boolean b, boolean y, boolean lBump, double lSticky, double rSticky, Telemetry telemetry){//add telemetry
+    public void Lifter(double rTrig, double lTrig, boolean a, boolean b, boolean y, boolean lBump, double lSticky, double rSticky, Telemetry telemetry){
         switch(liftState){
             case START: //back to start
                 x=ab=bc=0;
@@ -84,7 +83,7 @@ public class NewArmSlidesTeleOp {
                 if (rTrig>0.2){Intake.setPower(0.8);}
                 else{Intake.setPower(0);}
                 LSlides.setPower(0.4);RSlides.setPower(-0.4);
-                if (a) { //level 1
+                if (a) {
                     level = 1;
                     armTarget = 525;
                     adjusted = true;
@@ -114,7 +113,7 @@ public class NewArmSlidesTeleOp {
                 }
                 if ((VBMotor.getCurrentPosition()<525)||(adjusted)){adjusted = false;}
                 else if (eTime.time()>1800&&((Math.abs(LSlides.getCurrentPosition()-LSlides.getTargetPosition()))<20)&&(Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<20)) {
-                    if (level == 3) {armTarget = 745;}
+                    if (level == 3) {armTarget = 745;}//finish arm movement
                     else {armTarget = 700;}
                     if ((Math.abs(VBMotor.getCurrentPosition() - VBMotor.getTargetPosition()) < 20)) {
                         eTime.reset();
@@ -124,20 +123,15 @@ public class NewArmSlidesTeleOp {
                 break;
             case DEPOSIT:
                 LSlides.setPower(0.7);RSlides.setPower(0.7);
-                if ((lTrig>0.2)||(x>1)){ //deposit after some time
-                    Intake.setPower(-0.8); //deposit
+                if ((lTrig>0.2)||(x>1)){
+                    Intake.setPower(-0.8); //out take
                     if (x==0){eTime.reset();}
                     x+=1;
                     if (eTime.time()>700) {
                         Intake.setPower(0);
                         LSlides.setPower(-0.5);
                         RSlides.setPower(0.5);
-                        armTarget = 525;
-                        if ((targetPos!=600)&&(ab==0)){
-                            targetPos = 600;
-                            ab+=1;
-                        }
-
+                        armTarget = 525; //go to halfway arm
                         if ((lTrig>0.2)&&(Math.abs(VBMotor.getCurrentPosition()-armTarget)<30)&&(Math.abs(LSlides.getCurrentPosition()-600)<30)){
                             armTarget = 0;
                             liftState = LiftState.RETURN;
@@ -146,9 +140,8 @@ public class NewArmSlidesTeleOp {
                 }
                 break;
             case RETURN:
-                if (Math.abs(VBMotor.getCurrentPosition()-armTarget)<35){
-                    LSlides.setPower(0);
-                    RSlides.setPower(0);
+                if (Math.abs(VBMotor.getCurrentPosition()-armTarget)<35){//fully get the arm down, before moving slides
+                    targetPos = 600;//slides go down now
                     liftState = LiftState.START;
                 }
                 break;
