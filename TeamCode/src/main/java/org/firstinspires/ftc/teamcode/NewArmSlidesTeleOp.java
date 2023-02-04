@@ -167,6 +167,7 @@ public class NewArmSlidesTeleOp {
         telemetry.addData("rslide pos", RSlides.getCurrentPosition());
         telemetry.addData("rslide target",RSlides.getTargetPosition());
         telemetry.addData("busyL",LSlides.isBusy());
+        telemetry.addData("adjusted",adjusted);
         telemetry.update();
     }
     public double PIDControl1(double target, double state) {
