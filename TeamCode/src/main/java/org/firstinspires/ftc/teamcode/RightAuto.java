@@ -26,6 +26,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.AprilTagDetectionPipeline;
@@ -38,7 +39,7 @@ import org.openftc.easyopencv.OpenCvInternalCamera;
 import java.util.ArrayList;
 
 @Autonomous
-public class AprilTagAutonomousInitDetectionExample extends LinearOpMode {
+public class RightAuto extends LinearOpMode {
     OpenCvCamera camera;
     AprilTagDetectionPipeline aprilTagDetectionPipeline;
 
@@ -57,7 +58,8 @@ public class AprilTagAutonomousInitDetectionExample extends LinearOpMode {
     double fy = 578.272;
     double cx = 402.145;
     double cy = 221.506;
-
+    int restTime = 500, longer = 1000, shorter = 870, fd = 1000;
+    double power = 0.75;
     // UNITS ARE METERS
     double tagsize = 0.166;
 
@@ -86,6 +88,8 @@ public class AprilTagAutonomousInitDetectionExample extends LinearOpMode {
         backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -171,17 +175,22 @@ public class AprilTagAutonomousInitDetectionExample extends LinearOpMode {
 
         /* Actually do something useful */
         if(tagOfInterest == null || tagOfInterest.id == LEFT){
-            frontLeft.setPower(-0.75);
-            backLeft.setPower(0.75);
-            frontRight.setPower(0.75);
-            backRight.setPower(-0.75);
+            frontLeft.setPower(-power);
+            backLeft.setPower(power);
+            frontRight.setPower(power);
+            backRight.setPower(-power);
 
-            sleep(1000);
-            frontLeft.setPower(0.75);
-            backLeft.setPower(0.75);
-            frontRight.setPower(0.75);
-            backRight.setPower(0.75);
-            sleep(1000);
+            sleep(longer);
+            frontLeft.setPower(0);
+            backLeft.setPower(0);
+            frontRight.setPower(0);
+            backRight.setPower(0);
+            sleep(restTime);
+            frontLeft.setPower(power);
+            backLeft.setPower(power);
+            frontRight.setPower(power);
+            backRight.setPower(power);
+            sleep(fd);
             frontLeft.setPower(0);
             backLeft.setPower(0);
             frontRight.setPower(0);
@@ -192,7 +201,7 @@ public class AprilTagAutonomousInitDetectionExample extends LinearOpMode {
             backLeft.setPower(0.75);
             frontRight.setPower(0.75);
             backRight.setPower(0.75);
-            sleep(1000);
+            sleep(fd);
             frontLeft.setPower(0);
             backLeft.setPower(0);
             frontRight.setPower(0);
@@ -203,12 +212,17 @@ public class AprilTagAutonomousInitDetectionExample extends LinearOpMode {
             frontRight.setPower(-0.75);
             backRight.setPower(0.75);
 
-            sleep(1000);
+            sleep(shorter);
+            frontLeft.setPower(0);
+            backLeft.setPower(0);
+            frontRight.setPower(0);
+            backRight.setPower(0);
+            sleep(restTime);
             frontLeft.setPower(0.75);
             backLeft.setPower(0.75);
             frontRight.setPower(0.75);
             backRight.setPower(0.75);
-            sleep(1000);
+            sleep(fd);
             frontLeft.setPower(0);
             backLeft.setPower(0);
             frontRight.setPower(0);

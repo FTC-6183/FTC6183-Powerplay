@@ -134,7 +134,7 @@ public class ArmSlidesControlTeleOp {
                     eTime.reset();
                 }
                 //halfway up
-                if (eTime.time()>1200){
+                if (eTime.time()>700){
                     if (back){
                         LSlides.setTargetPosition(targetPos); //full up
                         RSlides.setTargetPosition(-targetPos);
@@ -148,11 +148,11 @@ public class ArmSlidesControlTeleOp {
                     VBMotor.setTargetPosition(armTarget);
                     adjusted = false;
                 }
-                else if (eTime.time()>1800&&((Math.abs(LSlides.getCurrentPosition()-LSlides.getTargetPosition()))<20)&&(Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<20)) {
+                else if (eTime.time()>1300&&((Math.abs(LSlides.getCurrentPosition()-LSlides.getTargetPosition()))<20)&&(Math.abs(VBMotor.getCurrentPosition()-VBMotor.getTargetPosition())<20)) {
                     if (back) { //whether the arm goes fully on the back
                         armTarget = 750;
                     } else {
-                        armTarget = 725;
+                        armTarget = 730;
                     }
 
                      //finish arm movement
