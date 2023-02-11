@@ -16,12 +16,12 @@ public class NewArmSlidesTeleOp {
         RETURN
     }
     private double previousError1 = 0, error1 = 0, integralSum1, derivative1, VBMotorPower, ab, offset, rad = 2*(Math.PI)/1425.1;
-    private double Kp = 0.0052, Kd = 0, Ki = 0; //Don't use Ki
+    private double Kp = 0.0052, Kd = 0.0001, Ki = 0; //Don't use Ki
     //0.0041, 0, 0
     //tune the power
     private ElapsedTime lowerTimer = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
     public LiftState liftState = LiftState.START;
-    private int targetPos = 0,armTarget = 0, x, level,bc, corr = 0;
+    private int targetPos = 0,armTarget = 0, x, level,bc, corr = 0, loop;
     private boolean adjusted;
     private ElapsedTime eTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     private DcMotorEx RSlides, LSlides, VBMotor;
@@ -48,14 +48,15 @@ public class NewArmSlidesTeleOp {
     public void Lifter(double rTrig, double lTrig, boolean a, boolean b, boolean y, boolean lBump, double lSticky, double rSticky, Telemetry telemetry, boolean g1x,boolean g2x){
         switch(liftState){
             case START: //back to start
+                Kp = 0.0052;
                 corr = 0;
                 LSlides.setPower(-0.7);RSlides.setPower(0.7);
-                x=bc=0;
+                x=bc=loop=0;
                 ab=0;
                 adjusted = false;
                 Intake.setPower(0);
                 if (rTrig>0.2){
-                    armTarget =0;
+                    armTarget = 0;
                     targetPos = 0;
                     Intake.setPower(0.8);
                 } else if (lBump){ //reset to state in which you can intake again
@@ -65,16 +66,19 @@ public class NewArmSlidesTeleOp {
                     armTarget = 525;
                     level = 1;
                     eTime.reset();
+                    loop = 0;
                     liftState = LiftState.LIFT;
                 } else if (b) {
                     armTarget = 525;
                     level = 2;
                     eTime.reset();
+                    loop = 0;
                     liftState = LiftState.LIFT;
                 } else if (y) {
                     armTarget = 525;
                     level = 3;
                     eTime.reset();
+                    loop = 0;
                     liftState = LiftState.LIFT;
                 }
                 break;
@@ -88,6 +92,7 @@ public class NewArmSlidesTeleOp {
                     armTarget = 525;
                     corr = 0;
                     adjusted = true;
+                    loop = 0;
                     eTime.reset();
                 } else if (b) {
                     level = 2;
@@ -95,6 +100,7 @@ public class NewArmSlidesTeleOp {
                     armTarget = 525;
                     corr = 0;
                     adjusted = true;
+                    loop = 0;
                     eTime.reset();
                 } else if (y) {
                     targetPos = 3090;
@@ -102,6 +108,7 @@ public class NewArmSlidesTeleOp {
                     armTarget = 525;
                     corr = 0;
                     adjusted = true;
+                    loop = 0;
                     eTime.reset();
                 }
                 if ((eTime.time()>700)){
@@ -120,34 +127,50 @@ public class NewArmSlidesTeleOp {
                     }
                 }
                 if (VBMotor.getCurrentPosition()<500||adjusted){
-                    armTarget = 525;
+                    if (loop == 0) {
+                        armTarget = 525;
+                    }
                     adjusted = false;}
                 else if (eTime.time()>1300&&((Math.abs(LSlides.getCurrentPosition()-LSlides.getTargetPosition()))<35)&&(Math.abs(VBMotor.getCurrentPosition()-(armTarget+corr))<50)) {
                     if (level == 3) {
-                        corr = 70;
-                        armTarget = (738-corr);
+
+                        if (loop == 0) {
+                            corr = 70;
+                            armTarget = (738 - corr);
+                        }
                     }//finish arm movement
                     else if (level ==1){
-                        corr = 50;
-                        armTarget = (730-corr);
+
+                        if (loop == 0) {
+                            corr = 50;
+                            armTarget = (730 - corr);
+                        }
                     }
                     else if (level ==2){
-                        corr = 60;
-                        armTarget = (700-corr);
+
+                        if (loop == 0) {
+                            corr = 60;
+                            armTarget = (700 - corr);
+                        }
                     }
-                    if ((Math.abs(VBMotor.getCurrentPosition() - (corr+armTarget)) < 35)&&(lTrig>0.2)) {
+                    if ((Math.abs(VBMotor.getCurrentPosition() - (corr+armTarget)) < 65)&&(lTrig>0.2)) {
+                        loop = 0;
                         liftState = LiftState.DEPOSIT;
                     }
                     telemetry.addData("test",bc);
                 } else if (eTime.time()>800&&((Math.abs(LSlides.getCurrentPosition()-LSlides.getTargetPosition()))<35)&&(Math.abs(VBMotor.getCurrentPosition()-(armTarget+corr))<35)&&level ==1){
                     corr = 50;
-                    armTarget = 700-corr;
-                    if ((Math.abs(VBMotor.getCurrentPosition() - (corr+armTarget)) < 35)&&(lTrig>0.2)) {
+                    if (loop == 0) {
+                        armTarget = 700 - corr;
+                    }
+                    if ((Math.abs(VBMotor.getCurrentPosition() - (corr+armTarget)) < 65)&&(lTrig>0.2)) {
                         eTime.reset();
+                        loop = 0;
                         liftState = LiftState.DEPOSIT;
                     }
                 }
                 if (g1x){
+                    loop = 0;
                     liftState = LiftState.DEPOSIT;
                 }
                 break;
@@ -158,10 +181,14 @@ public class NewArmSlidesTeleOp {
                     if (x==0){eTime.reset();}
                     x+=1;
                     if (eTime.time()>700) {
+                        Kp = 0.0054;
                         Intake.setPower(0);
                         LSlides.setPower(1);
                         RSlides.setPower(1);
-                        armTarget = 525; //go to halfway arm
+                        if (loop == 0){
+                            armTarget = 525;
+                        }
+                         //go to halfway arm
                         if ((Math.abs(VBMotor.getCurrentPosition()-armTarget)<55)){
                             ab=1;
                             armTarget = 100;
@@ -171,6 +198,7 @@ public class NewArmSlidesTeleOp {
                 }
                 break;
             case RETURN:
+                Kp = 0.0047;
                 //fix the slam steven
                 if (Math.abs(VBMotor.getCurrentPosition()-armTarget)<55){//fully get the arm down, before moving slides
                     targetPos = 600;//slides go down now
@@ -178,6 +206,11 @@ public class NewArmSlidesTeleOp {
 
                 }
                 break;
+        }
+        if (Math.abs(rSticky)>0.2) {
+            armTarget -= 15 * rSticky;
+            loop = 1;
+            corr = 0;
         }
         if (g2x){
             Intake.setPower(-0.8);
@@ -211,7 +244,8 @@ public class NewArmSlidesTeleOp {
         telemetry.addData("adjusted",adjusted);
         telemetry.addData("ab",ab);
         telemetry.addData("Kp",Kp);
-        telemetry.addData("value",VBMotor.getCurrentPosition() - (corr+armTarget));
+        telemetry.addData("corr",VBMotor.getCurrentPosition() - (corr+armTarget));
+        telemetry.addData("rTrig",rSticky*15);
         telemetry.update();
     }
     public double PIDControl1(double target, double state) {
@@ -230,3 +264,4 @@ public class NewArmSlidesTeleOp {
     }
 }
 //credit to steven gu of the gu family, in the gu variety
+// I <3 5795

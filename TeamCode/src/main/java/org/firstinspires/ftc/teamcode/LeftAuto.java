@@ -179,7 +179,14 @@ public class LeftAuto extends LinearOpMode {
         }
 
         /* Actually do something useful */
-        if(tagOfInterest == null || tagOfInterest.id == LEFT){
+        if (tagOfInterest == null){
+            frontLeft.setPower(0.3);
+            backLeft.setPower(-0.3);
+            frontRight.setPower(-0.3);
+            backRight.setPower(0.3);
+            sleep(shorter);
+        }
+        else if(tagOfInterest.id == LEFT){
             frontLeft.setPower(-power);
             backLeft.setPower(power);
             frontRight.setPower(power);

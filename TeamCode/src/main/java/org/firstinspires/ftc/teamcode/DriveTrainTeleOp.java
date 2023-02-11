@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -17,7 +18,8 @@ public class DriveTrainTeleOp {
     private DcMotorEx frontRight;
     private double speedDivide;
     private CRServo Intake;
-    private int var, var2;
+    private double   var = 0, var2 = 0;
+    private ElapsedTime eTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
     public DriveTrainTeleOp(HardwareMap hardwareMap) {
         backLeft = hardwareMap.get(DcMotorEx.class, "BL");
         backRight = hardwareMap.get(DcMotorEx.class, "BR");
@@ -42,12 +44,18 @@ public class DriveTrainTeleOp {
         double y = 0.8*(Math.pow(-lStickY,2))*Math.signum(-lStickY); //y value is inverted
         double x = 0.8*(Math.pow(lStickX,2))*Math.signum(lStickX);
         double rx = rStickX;
-        if (rTrig>0.2){
-            var = 1;
-            var2+=1;
-        } else if (lTrig>0.2){
-            var = 0;
-        }
+        var = rTrig;
+//        if (rTrig>0.2&&eTime.time()>300) {
+//            if (var2 == 0) {
+//                var = 1;
+//                var2 = 1;
+//                eTime.reset();
+//            } else if (var2 == 1) {
+//                var = 0;
+//                var2 = 0;
+//                eTime.reset();
+//            }
+//        }
         speedDivide = 1+var*2;
         double frontLeftSpd=-(y+x+rx)/speedDivide;
         double frontRightSpd=(y-x-rx)/speedDivide;
