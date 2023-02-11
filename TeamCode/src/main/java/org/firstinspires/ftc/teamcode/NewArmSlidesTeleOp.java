@@ -198,7 +198,7 @@ public class NewArmSlidesTeleOp {
                 }
                 break;
             case RETURN:
-                Kp = 0.0047;
+                Kp = 0.0043;
                 //fix the slam steven
                 if (Math.abs(VBMotor.getCurrentPosition()-armTarget)<55){//fully get the arm down, before moving slides
                     targetPos = 600;//slides go down now
