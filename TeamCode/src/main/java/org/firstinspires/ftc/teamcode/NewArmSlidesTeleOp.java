@@ -153,7 +153,7 @@ public class NewArmSlidesTeleOp {
                             armTarget = (700 - corr);
                         }
                     }
-                    if ((Math.abs(VBMotor.getCurrentPosition() - (corr+armTarget)) < 65)&&(lTrig>0.2)) {
+                    if ((Math.abs(VBMotor.getCurrentPosition() - (corr+armTarget)) < (65+corr))&&(lTrig>0.2)) {
                         loop = 0;
                         liftState = LiftState.DEPOSIT;
                     }
@@ -163,7 +163,7 @@ public class NewArmSlidesTeleOp {
                     if (loop == 0) {
                         armTarget = 700 - corr;
                     }
-                    if ((Math.abs(VBMotor.getCurrentPosition() - (corr+armTarget)) < 65)&&(lTrig>0.2)) {
+                    if ((Math.abs(VBMotor.getCurrentPosition() - (corr+armTarget)) < (65+corr))&&(lTrig>0.2)) {
                         eTime.reset();
                         loop = 0;
                         liftState = LiftState.DEPOSIT;
