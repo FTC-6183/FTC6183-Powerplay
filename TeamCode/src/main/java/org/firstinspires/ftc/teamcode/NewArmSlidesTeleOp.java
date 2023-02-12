@@ -45,7 +45,7 @@ public class NewArmSlidesTeleOp {
         RSlides.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         LiftState liftState = LiftState.START;
     }
-    public void Lifter(double rTrig, double lTrig, boolean a, boolean b, boolean y, boolean lBump, double lSticky, double rSticky, Telemetry telemetry, boolean g1x,boolean g2x){
+    public void Lifter(double rTrig, double lTrig, boolean a, boolean b, boolean y, boolean lBump, double lSticky, double rSticky, Telemetry telemetry, boolean g1x,boolean g2x, boolean dPadUp){
         switch(liftState){
             case START: //back to start
                 Kp = 0.0052;
@@ -189,7 +189,7 @@ public class NewArmSlidesTeleOp {
                             armTarget = 525;
                         }
                          //go to halfway arm
-                        if ((Math.abs(VBMotor.getCurrentPosition()-armTarget)<55)){
+                        if ((Math.abs(VBMotor.getCurrentPosition()-armTarget)<40)){
                             ab=1;
                             armTarget = 100;
                             liftState = LiftState.RETURN;
@@ -206,6 +206,11 @@ public class NewArmSlidesTeleOp {
 
                 }
                 break;
+        }
+        if(dPadUp){
+            VBMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+            VBMotor.setTargetPosition(0);
+            VBMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         }
         if (Math.abs(rSticky)>0.2) {
             armTarget -= 15 * rSticky;
