@@ -1,0 +1,68 @@
+public class DriveTrainTeleOp {
+    private DcMotorEx backLeft;
+    private DcMotorEx backRight;
+    private DcMotorEx frontLeft;
+    private DcMotorEx frontRight;
+    private double speedDivide;
+    private CRServo Intake;
+    private double   var = 0, var2 = 0;
+    private ElapsedTime eTime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+    public DriveTrainTeleOp(HardwareMap hardwareMap) {
+        backLeft = hardwareMap.get(DcMotorEx.class, "BL");
+        backRight = hardwareMap.get(DcMotorEx.class, "BR");
+        frontLeft = hardwareMap.get(DcMotorEx.class, "FL");
+        frontRight = hardwareMap.get(DcMotorEx.class, "FR");
+        Intake = hardwareMap.get(CRServo.class, "Intake");
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+    }
+    public void DriveTrain(double lStickX, double lStickY, double rStickX, double rTrig, Telemetry telemetry, boolean g1x, double lTrig){
+        double y = 0.8*(Math.pow(-lStickY,2))*Math.signum(-lStickY); //y value is inverted
+        double x = 0.8*(Math.pow(lStickX,2))*Math.signum(lStickX);
+        double rx = rStickX;
+        var = rTrig;
+//        if (rTrig>0.2&&eTime.time()>300) {
+//            if (var2 == 0) {
+//                var = 1;
+//                var2 = 1;
+//                eTime.reset();
+//            } else if (var2 == 1) {
+//                var = 0;
+//                var2 = 0;
+//                eTime.reset();
+//            }
+//        }
+        speedDivide = 1+var*2;
+        double frontLeftSpd=-(y+x+rx)/speedDivide;
+        double frontRightSpd=(y-x-rx)/speedDivide;
+        double backLeftSpd=-(y-x+rx)/speedDivide;
+        double backRightSpd=(y+x-rx)/speedDivide;
+        double denominator = Math.max(Math.abs(y)+Math.abs(x)+Math.abs(rx),1);
+        frontRightSpd /= denominator;
+        frontLeftSpd /= denominator;
+        backRightSpd /= denominator;
+        backLeftSpd /= denominator;
+
+        frontLeft.setPower(frontLeftSpd);
+        frontRight.setPower(frontRightSpd);
+        backLeft.setPower(backLeftSpd);
+        backRight.setPower(backRightSpd);
+        /*
+        telemetry.addData("FL", frontLeft.getCurrentPosition());
+        telemetry.addData("FR",frontRight.getCurrentPosition());
+        telemetry.addData("BL",backLeft.getCurrentPosition());
+        telemetry.addData("BR",backRight.getCurrentPosition());
+        telemetry.update();*/
+    }
+}
