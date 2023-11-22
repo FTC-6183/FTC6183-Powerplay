@@ -18,7 +18,9 @@ public class Test extends LinearOpMode {
         BR = hardwareMap.get(DcMotorEx.class, "BR");
         FL = hardwareMap.get(DcMotorEx.class, "FL");
         FR = hardwareMap.get(DcMotorEx.class, "FR");
-
+        FR.setDirection(DcMotorEx.Direction.FORWARD);
+        BR.setDirection(DcMotorEx.Direction.FORWARD);
+        double speedDivide = 1;
         BL.setDirection(DcMotorSimple.Direction.REVERSE);//switched from BR TO BL
         FL.setDirection(DcMotorSimple.Direction.REVERSE);//switched from FR TO FL
 
@@ -28,11 +30,17 @@ public class Test extends LinearOpMode {
             double y = 0.8*(Math.pow(-gamepad1.left_stick_y,2))*Math.signum(-gamepad1.left_stick_y); //y value is inverted
             double x = 0.8*(Math.pow(-gamepad1.left_stick_x, 2))*Math.signum(-gamepad1.left_stick_x);
             double rx = -gamepad1.right_stick_x;
-
-            FLP = y + x - rx;
-            FRP = y - x + rx;
-            BLP = y - x - rx;
-            BRP = y + x + rx;
+            if (gamepad1.left_bumper){
+                speedDivide = 4;
+            } else {
+                speedDivide = 1;
+            }
+            double frontLeftSpd=(y+x+rx)/speedDivide; //y+x+rx
+            double frontRightSpd=(y-x-rx)/speedDivide;
+            FLP = (y + x - rx)/speedDivide;
+            FRP = (y - x + rx)/speedDivide;
+            BLP = (y - x - rx)/speedDivide;
+            BRP = (y + x + rx)/speedDivide;
 
             double denominator = Math.max(Math.abs(y)+Math.abs(x)+Math.abs(rx),1);
             FLP /= denominator;
@@ -44,12 +52,11 @@ public class Test extends LinearOpMode {
             FR.setPower(FRP);
             BL.setPower(BLP);
             BR.setPower(BRP);
-
+            BL.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+            FL.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+            BR.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+            FR.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         }
-
-
-
-
     }
 
 }
