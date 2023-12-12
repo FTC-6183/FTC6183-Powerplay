@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @TeleOp
-public class Test extends LinearOpMode {
+public class DriveTrainTeleOp2024 extends LinearOpMode {
 
     private DcMotorEx FR, FL, BL, BR;
     private double FRP, FLP, BLP, BRP;
@@ -22,8 +22,8 @@ public class Test extends LinearOpMode {
         FR.setDirection(DcMotorEx.Direction.FORWARD);
         BR.setDirection(DcMotorEx.Direction.FORWARD);
         double speedDivide = 1;
-        BL.setDirection(DcMotorSimple.Direction.REVERSE);//switched from BR TO BL
-        FL.setDirection(DcMotorSimple.Direction.REVERSE);//switched from FR TO FL
+        BL.setDirection(DcMotorEx.Direction.REVERSE);//switched from BR TO BL
+        FL.setDirection(DcMotorEx.Direction.REVERSE);//switched from FR TO FL
 
         waitForStart();
 
