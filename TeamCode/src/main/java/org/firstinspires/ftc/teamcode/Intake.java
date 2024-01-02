@@ -1,33 +1,40 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Teleop;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.ServoImpl;
-import com.qualcomm.robotcore.hardware.ServoImplEx;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-@TeleOp
-public class Intake extends LinearOpMode {
-    @Override
-    public void runOpMode() throws InterruptedException {
-        CRServo Intake = hardwareMap.get(CRServo.class, "Intake");
-        double x;
-        waitForStart();
 
-        while (opModeIsActive()){
-            if (gamepad1.right_trigger>0.3){
-                Intake.setPower(0.8);
-            } else if (gamepad1.left_trigger>0.3) {
-                Intake.setPower(-0.8);
-            } else {
-                Intake.setPower(0);
-            }
-            x= Intake.getPower();
-            telemetry.addData("power", x);
-            telemetry.update();
+    //@TeleOp
+    public class Intake  {
+        //@Override
+        private DcMotorEx Intake;
+        public Intake (HardwareMap hardwareMap) {
+            DcMotorEx Intake = hardwareMap.get(DcMotorEx.class, "Intake");
+            Intake.setDirection(DcMotorEx.Direction.FORWARD);
 
+            //waitForStart();
         }
+           public void intakeMethod(double gamepadRT, boolean gamepadRB) {
+               double x;
+                if (gamepadRT>0.3){
+                    Intake.setPower(1.0);
+                } else if (gamepadRB == true) {
+                    Intake.setPower(0.5);
+                } else {
+                    Intake.setPower(0);
+                }
+                x= Intake.getPower();
+            }
 
-    }
-}
+           // telemetry.addData("power", x);
+               // telemetry.update();
+
+            }
+
+
+
